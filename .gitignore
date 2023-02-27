@@ -1,0 +1,12 @@
+
+# npm packages
+node_modules/
+
+# yarn stuff
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
