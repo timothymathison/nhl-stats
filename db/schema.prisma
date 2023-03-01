@@ -1,0 +1,70 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Team {
+  id       Int        @id
+  name     String     @unique
+  TeamGame TeamGame[]
+  Player   Player[]
+
+  @@map("teams")
+}
+
+model Game {
+  id         Int          @id
+  homeTeamId Int          @map("home_team_id")
+  awayTeamId Int          @map("away_team_id")
+  TeamGame   TeamGame[]
+  PlayerGame PlayerGame[]
+
+  @@map("games")
+}
+
+model TeamGame {
+  id             Int     @default(autoincrement()) @id
+  team           Team    @relation(fields: [teamId], references: [id])
+  teamId         Int     @map("team_id")
+  game           Game    @relation(fields: [gameId], references: [id])
+  gameId         Int     @map("game_id")
+  opponnetTeamId Int     @map("opponnet_team_id")
+  home           Boolean
+  goals          Int
+  hits           Int
+  penaltyMinutes Int     @map("penalty_minutes")
+
+  @@map("team_games")
+}
+
+model Player {
+  id         Int          @id
+  team       Team         @relation(fields: [teamId], references: [id])
+  teamId     Int          @map("team_id")
+  fullName   String       @map("full_name")
+  number     Int
+  position   String
+  PlayerGame PlayerGame[]
+
+  @@map("players")
+}
+
+model PlayerGame {
+  id             Int    @default(autoincrement()) @id
+  player         Player @relation(fields: [playerId], references: [id])
+  playerId       Int    @map("player_id")
+  game           Game   @relation(fields: [gameId], references: [id])
+  gameId         Int    @map("game_id")
+  playerAge      Int    @map("player_age")
+  goals          Int
+  hits           Int
+  points         Int
+  assists        Int
+  penaltyMinutes Int    @map("penalty_minutes")
+
+  @@map("player_games")
+}
