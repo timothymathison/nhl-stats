@@ -8,16 +8,20 @@ generator client {
 }
 
 model Team {
-  id       Int        @id
-  name     String     @unique
-  TeamGame TeamGame[]
-  Player   Player[]
+  id        Int        @id
+  name      String     @unique
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  TeamGame  TeamGame[]
+  Player    Player[]
 
   @@map("teams")
 }
 
 model Game {
   id         Int          @id
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
   // could store game location and other metadata
   TeamGame   TeamGame[]
   PlayerGame PlayerGame[]
@@ -26,15 +30,17 @@ model Game {
 }
 
 model TeamGame {
-  id             Int     @default(autoincrement()) @id
-  team           Team    @relation(fields: [teamId], references: [id])
-  teamId         Int     @map("team_id")
-  game           Game    @relation(fields: [gameId], references: [id])
-  gameId         Int     @map("game_id")
+  id             Int      @default(autoincrement()) @id
+  team           Team     @relation(fields: [teamId], references: [id])
+  teamId         Int      @map("team_id")
+  game           Game     @relation(fields: [gameId], references: [id])
+  gameId         Int      @map("game_id")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
   home           Boolean
   goals          Int
   hits           Int
-  penaltyMinutes Int     @map("penalty_minutes")
+  penaltyMinutes Int      @map("penalty_minutes")
 
   @@map("team_games")
   @@unique([teamId, gameId])
@@ -44,6 +50,8 @@ model Player {
   id              Int          @id
   team            Team         @relation(fields: [teamId], references: [id])
   teamId          Int          @map("team_id")
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
   firstName       String       @map("first_name")
   lastName        String       @map("last_name")
   fullName        String       @map("full_name")
@@ -55,18 +63,20 @@ model Player {
 }
 
 model PlayerGame {
-  id             Int    @default(autoincrement()) @id
-  player         Player @relation(fields: [playerId], references: [id])
-  playerId       Int    @map("player_id")
-  game           Game   @relation(fields: [gameId], references: [id])
-  gameId         Int    @map("game_id")
-  playerAge      Int    @map("player_age")
+  id             Int      @default(autoincrement()) @id
+  player         Player   @relation(fields: [playerId], references: [id])
+  playerId       Int      @map("player_id")
+  game           Game     @relation(fields: [gameId], references: [id])
+  gameId         Int      @map("game_id")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  playerAge      Int      @map("player_age")
   position       String
   goals          Int
   hits           Int
   points         Int
   assists        Int
-  penaltyMinutes Int    @map("penalty_minutes")
+  penaltyMinutes Int      @map("penalty_minutes")
 
   @@map("player_games")
   @@unique([playerId, gameId])
