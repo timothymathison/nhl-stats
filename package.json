@@ -16,6 +16,7 @@
     "schema": "db/schema.prisma"
   },
   "scripts": {
+    "start": "node coordinator.js",
     "prisma:setup": "prisma generate",
     "db:migration": "prisma migrate dev",
     "db:migrate": "prisma migrate deploy"
