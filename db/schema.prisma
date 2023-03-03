@@ -18,8 +18,7 @@ model Team {
 
 model Game {
   id         Int          @id
-  homeTeamId Int          @map("home_team_id")
-  awayTeamId Int          @map("away_team_id")
+  // could store game location and other metadata
   TeamGame   TeamGame[]
   PlayerGame PlayerGame[]
 
@@ -32,7 +31,6 @@ model TeamGame {
   teamId         Int     @map("team_id")
   game           Game    @relation(fields: [gameId], references: [id])
   gameId         Int     @map("game_id")
-  opponnetTeamId Int     @map("opponnet_team_id")
   home           Boolean
   goals          Int
   hits           Int
@@ -42,13 +40,15 @@ model TeamGame {
 }
 
 model Player {
-  id         Int          @id
-  team       Team         @relation(fields: [teamId], references: [id])
-  teamId     Int          @map("team_id")
-  fullName   String       @map("full_name")
-  number     Int
-  position   String
-  PlayerGame PlayerGame[]
+  id              Int          @id
+  team            Team         @relation(fields: [teamId], references: [id])
+  teamId          Int          @map("team_id")
+  firstName       String       @map("first_name")
+  lastName        String       @map("last_name")
+  fullName        String       @map("full_name")
+  number          Int
+  primaryPosition String       @map("primary_position")
+  PlayerGame      PlayerGame[]
 
   @@map("players")
 }
@@ -60,6 +60,7 @@ model PlayerGame {
   game           Game   @relation(fields: [gameId], references: [id])
   gameId         Int    @map("game_id")
   playerAge      Int    @map("player_age")
+  position       String
   goals          Int
   hits           Int
   points         Int
