@@ -20,6 +20,7 @@ model Team {
 
 model Game {
   id         Int          @id
+  // TODO: store start time of game
   createdAt  DateTime     @default(now())
   updatedAt  DateTime     @updatedAt
   // could store game location and other metadata
