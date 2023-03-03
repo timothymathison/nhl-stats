@@ -37,6 +37,7 @@ model TeamGame {
   penaltyMinutes Int     @map("penalty_minutes")
 
   @@map("team_games")
+  @@unique([teamId, gameId])
 }
 
 model Player {
@@ -68,4 +69,5 @@ model PlayerGame {
   penaltyMinutes Int    @map("penalty_minutes")
 
   @@map("player_games")
+  @@unique([playerId, gameId])
 }
