@@ -21,8 +21,9 @@ model Team {
 model Game {
   id         Int          @id
   // TODO: store start time of game
-  createdAt  DateTime     @default(now())
-  updatedAt  DateTime     @updatedAt
+  // TODO: store game state
+  createdAt  DateTime     @default(now()) @map("created_at")
+  updatedAt  DateTime     @map("updated_at") @updatedAt
   // could store game location and other metadata
   TeamGame   TeamGame[]
   PlayerGame PlayerGame[]
@@ -36,8 +37,8 @@ model TeamGame {
   teamId         Int      @map("team_id")
   game           Game     @relation(fields: [gameId], references: [id])
   gameId         Int      @map("game_id")
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @map("updated_at") @updatedAt
   home           Boolean
   goals          Int
   hits           Int
@@ -51,8 +52,8 @@ model Player {
   id              Int          @id
   team            Team         @relation(fields: [teamId], references: [id])
   teamId          Int          @map("team_id")
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
+  createdAt       DateTime     @default(now()) @map("created_at")
+  updatedAt       DateTime     @map("updated_at") @updatedAt
   firstName       String       @map("first_name")
   lastName        String       @map("last_name")
   fullName        String       @map("full_name")
@@ -69,8 +70,8 @@ model PlayerGame {
   playerId       Int      @map("player_id")
   game           Game     @relation(fields: [gameId], references: [id])
   gameId         Int      @map("game_id")
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @map("updated_at") @updatedAt
   playerAge      Int      @map("player_age")
   position       String
   goals          Int
