@@ -21,7 +21,7 @@ model Team {
 model Game {
   id         Int          @id
   // TODO: store start time of game
-  // TODO: store game state
+  final      Boolean
   createdAt  DateTime     @default(now()) @map("created_at")
   updatedAt  DateTime     @map("updated_at") @updatedAt
   // could store game location and other metadata
