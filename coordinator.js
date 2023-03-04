@@ -1,19 +1,24 @@
 import parseArgs from "minimist";
 import axios from "./lib/axios.js";
-import { getLocalISODate } from "./lib/utils.js";
-import { startIngest, fetchLatestGameStats } from "./lib/ingest.js";
+import {
+  getLocalISODate
+} from "./lib/utils.js";
+import {
+  startIngest,
+  fetchLatestGameStats
+} from "./lib/ingest.js";
 
 const SCHEDULE_POLL_INTERVAL = 5000;
 
 const gameHandlers = {}; // stores injest handlers for each game
-const processesedGames = new Set();
+const processedGames = new Set();
 
-const coordinateIngest = async () => {
-  const currentISODate = dateForIngest || getLocalISODate();
+const coordinateIngest = (configuredDate) => async () => {
+  const gameDate = configuredDate || getLocalISODate();
   try {
     const scheduleResponse = await axios.get("/schedule", {
       params: {
-        date: currentISODate
+        date: gameDate
       }
     });
     const games = scheduleResponse.data.dates[0].games;
@@ -27,7 +32,7 @@ const coordinateIngest = async () => {
       game => game.status.abstractGameState === "Preview"
     );
     console.log(
-      `Game Status for ${currentISODate} - Finished: ${finishedGames.length}, Live: ${liveGames.length}, Scheduled: ${scheduledGames.length}, Total: ${games.length}`
+      `Game Status for ${gameDate} - Finished: ${finishedGames.length}, Live: ${liveGames.length}, Scheduled: ${scheduledGames.length}, Total: ${games.length}`
     ); // TODO: update previous line
     liveGames.forEach(game => {
       const gameId = game.gamePk;
@@ -38,21 +43,22 @@ const coordinateIngest = async () => {
     });
     finishedGames.forEach(game => {
       const gameId = game.gamePk;
-      if (!processesedGames.has(gameId)) {
+      if (!processedGames.has(gameId)) {
         if (gameHandlers[gameId]) {
           // game was previously live during this run
+          console.log(`Game id: ${gameId} is now finished. Stopping ingest handler`)
           gameHandlers[gameId].finishIngest();
         } else {
           // game was already final
           fetchLatestGameStats(gameId);
         }
-        processesedGames.add(gameId);
+        processedGames.add(gameId);
       }
     });
   } catch (error) {
     console.error("Failed to load schedule", error);
     if (error.response) {
-      console.error("Error response:", error.response);
+      console.error("Schedule error response:", error.response);
     }
   }
 };
@@ -69,8 +75,8 @@ if (dateForIngest) {
     console.error("Cannot do one time ingest for date that is not in the past");
     process.exit(1);
   }
-  await coordinateIngest();
+  await coordinateIngest(dateForIngest)();
   process.exit(0); // TODO: can't exit like this. Need to actualy wait for async ingest functions to finish
 }
 
-setInterval(coordinateIngest, SCHEDULE_POLL_INTERVAL);
+setInterval(coordinateIngest(), SCHEDULE_POLL_INTERVAL);
