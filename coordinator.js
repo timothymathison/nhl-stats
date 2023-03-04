@@ -1,19 +1,14 @@
 import parseArgs from "minimist";
 import axios from "./lib/axios.js";
-import {
-  getLocalISODate
-} from "./lib/utils.js";
-import {
-  startIngest,
-  fetchLatestGameStats
-} from "./lib/ingest.js";
+import { getLocalISODate } from "./lib/utils.js";
+import { initGameHandler } from "./lib/ingest.js";
 
 const SCHEDULE_POLL_INTERVAL = 5000;
 
 const gameHandlers = {}; // stores injest handlers for each game
 const processedGames = new Set();
 
-const coordinateIngest = (configuredDate) => async () => {
+const coordinateIngest = configuredDate => async () => {
   const gameDate = configuredDate || getLocalISODate();
   try {
     const scheduleResponse = await axios.get("/schedule", {
@@ -22,37 +17,26 @@ const coordinateIngest = (configuredDate) => async () => {
       }
     });
     const games = scheduleResponse.data.dates[0].games;
-    const finishedGames = games.filter(
+    const finalGames = games.filter(
       game => game.status.abstractGameState === "Final"
     );
     const liveGames = games.filter(
       game => game.status.abstractGameState === "Live"
     );
-    const scheduledGames = games.filter(
+    const previewGames = games.filter(
       game => game.status.abstractGameState === "Preview"
     );
     console.log(
-      `Game Status for ${gameDate} - Finished: ${finishedGames.length}, Live: ${liveGames.length}, Scheduled: ${scheduledGames.length}, Total: ${games.length}`
-    ); // TODO: update previous line
-    liveGames.forEach(game => {
+      `Game Status for ${gameDate} - Final: ${finalGames.length}, Live: ${liveGames.length}, Preview: ${previewGames.length}, Total: ${games.length}`
+    );
+    finalGames.concat(liveGames).forEach(game => {
       const gameId = game.gamePk;
+      const gameState = game.status.abstractGameState;
       if (!gameHandlers[gameId]) {
-        console.log(`Game id: ${gameId} is now live. Starting ingest handler`);
-        gameHandlers[gameId] = startIngest(gameId);
-      }
-    });
-    finishedGames.forEach(game => {
-      const gameId = game.gamePk;
-      if (!processedGames.has(gameId)) {
-        if (gameHandlers[gameId]) {
-          // game was previously live during this run
-          console.log(`Game id: ${gameId} is now finished. Stopping ingest handler`)
-          gameHandlers[gameId].finishIngest();
-        } else {
-          // game was already final
-          fetchLatestGameStats(gameId);
-        }
-        processedGames.add(gameId);
+        console.log(
+          `Game id: ${gameId} is ${gameState}. Starting game ingest handler`
+        );
+        gameHandlers[gameId] = initGameHandler(gameId);
       }
     });
   } catch (error) {
@@ -76,7 +60,12 @@ if (dateForIngest) {
     process.exit(1);
   }
   await coordinateIngest(dateForIngest)();
-  process.exit(0); // TODO: can't exit like this. Need to actualy wait for async ingest functions to finish
+  // wait for all game ingest handlers to finish before exiting
+  await Promise.all(
+    Object.values(gameHandlers).map(handler => handler.finalGame)
+  );
+  console.log(`Done with one time ingest for ${dateForIngest}. Exiting.`);
+  process.exit(0);
 }
 
 setInterval(coordinateIngest(), SCHEDULE_POLL_INTERVAL);
