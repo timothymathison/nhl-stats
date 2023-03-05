@@ -1,20 +1,24 @@
-import parseArgs from "minimist";
 import axios from "./lib/axios.js";
-import { getLocalISODate } from "./lib/utils.js";
-import { initGameHandler } from "./lib/ingest.js";
+import {
+  getLocalISODate,
+  validateDate,
+  compact
+} from "./lib/utils.js";
+import {
+  initGameHandler
+} from "./lib/ingest.js";
 
 const SCHEDULE_POLL_INTERVAL = 5000;
 
 const gameHandlers = {}; // stores injest handlers for each game
-const processedGames = new Set();
 
-const coordinateIngest = configuredDate => async () => {
-  const gameDate = configuredDate || getLocalISODate();
+const coordinateIngest = dateConfigurations => async () => {
+  const dateParams = dateConfigurations || {
+    date: getLocalISODate()
+  };
   try {
     const scheduleResponse = await axios.get("/schedule", {
-      params: {
-        date: gameDate
-      }
+      params: dateParams
     });
     const games = scheduleResponse.data.dates[0].games;
     const finalGames = games.filter(
@@ -27,7 +31,7 @@ const coordinateIngest = configuredDate => async () => {
       game => game.status.abstractGameState === "Preview"
     );
     console.log(
-      `Game Status for ${gameDate} - Final: ${finalGames.length}, Live: ${liveGames.length}, Preview: ${previewGames.length}, Total: ${games.length}`
+      `Game Status for ${JSON.stringify(dateParams)} - Final: ${finalGames.length}, Live: ${liveGames.length}, Preview: ${previewGames.length}, Total: ${games.length}`
     );
     finalGames.concat(liveGames).forEach(game => {
       const gameId = game.gamePk;
@@ -49,23 +53,47 @@ const coordinateIngest = configuredDate => async () => {
 
 console.log("Starting NHL stat ingest Coordinator...");
 
-// processes args
-const argv = parseArgs(process.argv.slice(2));
-const dateForIngest = argv.date || argv.d; // TODO: format check
+const {
+  DATE: date,
+  START_DATE: startDate,
+  END_DATE: endDate
+} = process.env;
+validateDate(date);
+validateDate(startDate);
+validateDate(endDate);
+const localDate = getLocalISODate();
+if (date && (startDate || endDate)) {
+  console.error(
+    "Start date and end date cannot be set at the same time as date"
+  );
+  process.exit(1);
+} else if (!!startDate !== !!endDate) {
+  console.error("Start date and end date must both be provided");
+  process.exit(1);
+} else if (startDate > endDate) {
+  console.error("Start date cannot be after end date");
+  process.exit(1);
+} else if (date >= localDate || endDate >= localDate) {
+  console.error("Only dates in the past are supported for one time ingest");
+  process.exit(1);
+}
 
-if (dateForIngest) {
-  // just do one time injest of final game stats for that date
-  if (dateForIngest >= getLocalISODate()) {
-    console.error("Cannot do one time ingest for date that is not in the past");
-    process.exit(1);
-  }
-  await coordinateIngest(dateForIngest)();
+const dateConfigurations = compact({
+  date,
+  startDate,
+  endDate
+});
+
+if (Object.keys(dateConfigurations).length) {
+  console.log(`Starting one time time ingest for ${JSON.stringify(dateConfigurations)}`);
+  await coordinateIngest(dateConfigurations)();
   // wait for all game ingest handlers to finish before exiting
   await Promise.all(
     Object.values(gameHandlers).map(handler => handler.finalGame)
   );
-  console.log(`Done with one time ingest for ${dateForIngest}. Exiting.`);
+  console.log(`Done with one time ingest for ${JSON.stringify(dateConfigurations)}. Exiting.`);
   process.exit(0);
 }
 
+// if no date configurations provided, ingest games from today and future
 setInterval(coordinateIngest(), SCHEDULE_POLL_INTERVAL);
