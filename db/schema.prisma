@@ -72,7 +72,7 @@ model PlayerGame {
   gameId         Int      @map("game_id")
   createdAt      DateTime @default(now()) @map("created_at")
   updatedAt      DateTime @map("updated_at") @updatedAt
-  playerAge      Int      @map("player_age")
+  playerAge      Int?     @map("player_age")
   position       String
   goals          Int
   hits           Int
