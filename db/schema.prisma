@@ -57,7 +57,7 @@ model Player {
   firstName       String       @map("first_name")
   lastName        String       @map("last_name")
   fullName        String       @map("full_name")
-  number          Int
+  number          Int?
   primaryPosition String       @map("primary_position")
   PlayerGame      PlayerGame[]
 
