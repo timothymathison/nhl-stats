@@ -1,15 +1,10 @@
 import axios from "./lib/axios.js";
-import {
-  getLocalISODate,
-  validateDate,
-  compact
-} from "./lib/utils.js";
-import {
-  initGameHandler
-} from "./lib/ingest.js";
+import { getLocalISODate, validateDate, compact } from "./lib/utils.js";
+import { initGameHandler } from "./lib/ingest.js";
 
 const SCHEDULE_POLL_INTERVAL = 5000;
 
+const startTime = new Date();
 const gameHandlers = {}; // stores injest handlers for each game
 
 const coordinateIngest = dateConfigurations => async () => {
@@ -31,7 +26,11 @@ const coordinateIngest = dateConfigurations => async () => {
       game => game.status.abstractGameState === "Preview"
     );
     console.log(
-      `Game Status for ${JSON.stringify(dateParams)} - Final: ${finalGames.length}, Live: ${liveGames.length}, Preview: ${previewGames.length}, Total: ${games.length}`
+      `Game Status for ${JSON.stringify(dateParams)} - Final: ${
+        finalGames.length
+      }, Live: ${liveGames.length}, Preview: ${previewGames.length}, Total: ${
+        games.length
+      }`
     );
     finalGames.concat(liveGames).forEach(game => {
       const gameId = game.gamePk;
@@ -53,11 +52,7 @@ const coordinateIngest = dateConfigurations => async () => {
 
 console.log("Starting NHL stat ingest Coordinator...");
 
-const {
-  DATE: date,
-  START_DATE: startDate,
-  END_DATE: endDate
-} = process.env;
+const { DATE: date, START_DATE: startDate, END_DATE: endDate } = process.env;
 validateDate(date);
 validateDate(startDate);
 validateDate(endDate);
@@ -85,13 +80,21 @@ const dateConfigurations = compact({
 });
 
 if (Object.keys(dateConfigurations).length) {
-  console.log(`Starting one time time ingest for ${JSON.stringify(dateConfigurations)}`);
+  console.log(
+    `Starting one time ingest for ${JSON.stringify(dateConfigurations)}`
+  );
   await coordinateIngest(dateConfigurations)();
   // wait for all game ingest handlers to finish before exiting
   await Promise.all(
     Object.values(gameHandlers).map(handler => handler.finalGame)
   );
-  console.log(`Done with one time ingest for ${JSON.stringify(dateConfigurations)}. Exiting.`);
+  console.log(
+    `Done with one time ingest for ${JSON.stringify(
+      dateConfigurations
+    )}. Exiting.`
+  );
+  const endTime = new Date();
+  console.log(`Ran for ${endTime - startTime} seconds`);
   process.exit(0);
 }
 
