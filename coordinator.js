@@ -15,7 +15,7 @@ const coordinateIngest = dateConfigurations => async () => {
     const scheduleResponse = await axios.get("/schedule", {
       params: dateParams
     });
-    const games = scheduleResponse.data.dates[0].games;
+    const games = scheduleResponse.data.dates.map(d => d.games).flat();
     const finalGames = games.filter(
       game => game.status.abstractGameState === "Final"
     );
