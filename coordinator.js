@@ -94,7 +94,7 @@ if (Object.keys(dateConfigurations).length) {
     )}. Exiting.`
   );
   const endTime = new Date();
-  console.log(`Ran for ${endTime - startTime} seconds`);
+  console.log(`Ran for ${(endTime - startTime) / 1000} seconds`);
   process.exit(0);
 }
 
