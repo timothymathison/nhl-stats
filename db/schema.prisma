@@ -50,8 +50,8 @@ model TeamGame {
 
 model Player {
   id              Int          @id
-  team            Team         @relation(fields: [teamId], references: [id])
-  teamId          Int          @map("team_id")
+  team            Team?        @relation(fields: [teamId], references: [id])
+  teamId          Int?         @map("team_id")
   createdAt       DateTime     @default(now()) @map("created_at")
   updatedAt       DateTime     @map("updated_at") @updatedAt
   firstName       String       @map("first_name")
@@ -78,7 +78,7 @@ model PlayerGame {
   hits           Int
   points         Int
   assists        Int
-  penaltyMinutes Int      @map("penalty_minutes")
+  penaltyMinutes Int?     @default(0) @map("penalty_minutes")
 
   @@map("player_games")
   @@unique([playerId, gameId])

@@ -14,7 +14,7 @@ _TODO_
 
 - [x] Working live game ingest
 - [x] Working ingest for games from previous day
-- [ ] Working ingest for games from previous seasons or date ranges
+- [x] Working ingest for games from previous seasons or date ranges
 - [ ] Unit tests with mocka or jest
 - [ ] Fully containerized (docker compose) run configurations
   - [ ] Docker image
