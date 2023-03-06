@@ -35,7 +35,7 @@ docker compose up
 Above command should automatically run the `postgres` database, run the migrations, and then start the app.
 
 By default the app will ingest stats from any games that already took place on the current day,
-and then monitor for live games and ingest stats in real time.
+and then monitor for live games and ingest stats in real time, for an indefinate time until it manually terminated.
 
 To ingest games from past dates or seasons, use one of the supported environment variable combinations to configure the dates to ingest:
 
@@ -44,6 +44,8 @@ To ingest games from past dates or seasons, use one of the supported environment
 - `SEASON=yyyyyyyy` (ex: `20222023`) - to ingest all game stats (for final games) for a given season
 
 When running the app via `docker`, these environment variables can be set in the `.env` file.
+
+After stats for all games from the specified time period are ingested, the app will exit.
 
 #### Native
 
@@ -72,6 +74,21 @@ Configure DATE environment configurations on the command line like:
 
 ```sh
 DATE=2022-03-06 yarn start
+```
+
+### Tests
+
+I added a sampling of tests for demonstration purposes,
+but did not take the time to write full unit tests for all functionality.
+
+In addition, I didn't take time to setup mocks for database calls.
+So the `postgres` container will need to be running before executing tests.
+Also, `POSTGRES_HOST` should be set to `localhost`, when running tests natively.
+
+Run the tests with:
+
+```sh
+yarn test
 ```
 
 ## Design
