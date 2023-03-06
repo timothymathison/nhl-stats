@@ -21,7 +21,7 @@ To run the app natively on your machine, install:
 First copy the example env file:
 
 ```
-cp .example.env .env
+cp example.env .env
 ```
 
 Then change the postgres password if you wish.
