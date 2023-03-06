@@ -54,11 +54,11 @@ model Player {
   teamId          Int?         @map("team_id")
   createdAt       DateTime     @default(now()) @map("created_at")
   updatedAt       DateTime     @map("updated_at") @updatedAt
-  firstName       String       @map("first_name")
-  lastName        String       @map("last_name")
-  fullName        String       @map("full_name")
+  firstName       String?      @map("first_name")
+  lastName        String?      @map("last_name")
+  fullName        String?      @map("full_name")
   number          Int?
-  primaryPosition String       @map("primary_position")
+  primaryPosition String?      @map("primary_position")
   PlayerGame      PlayerGame[]
 
   @@map("players")
