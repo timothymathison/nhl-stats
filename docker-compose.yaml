@@ -1,4 +1,21 @@
 services:
+  ingest:
+    build:
+      context: .
+      target: app
+    env_file:
+      - .env
+    depends_on:
+      - db-migrate
+      - postgres
+  db-migrate:
+    build:
+      context: .
+      target: db-migrate
+    env_file:
+      - .env
+    depends_on:
+      - postgres
   postgres:
     image: postgres:15-alpine
     ports:
