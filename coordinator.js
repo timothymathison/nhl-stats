@@ -14,7 +14,7 @@ const SCHEDULE_POLL_INTERVAL = 5000;
 const startTime = new Date();
 const gameHandlers = {}; // stores injest handlers for each game
 
-const coordinateIngest = dateConfigurations => async () => {
+const coordinateIngest = (dateConfigurations, batchSize = 50) => async () => {
   const dateParams = dateConfigurations || {
     date: getLocalISODate()
   };
@@ -39,7 +39,9 @@ const coordinateIngest = dateConfigurations => async () => {
         games.length
       }`
     );
-    finalGames.concat(liveGames).forEach(game => {
+    const gamesToIngest = finalGames.concat(liveGames);
+    for (let index = 0; index < gamesToIngest.length; index++) {
+      const game = gamesToIngest[index];
       const gameId = game.gamePk;
       const gameState = game.status.abstractGameState;
       if (!gameHandlers[gameId]) {
@@ -48,13 +50,25 @@ const coordinateIngest = dateConfigurations => async () => {
         );
         gameHandlers[gameId] = initGameHandler(gameId);
       }
-    });
+      if ((index + 1) % batchSize === 0) {
+        // if we've initialized a full batch, wait until all game handlers are complete
+        console.log("wait");
+        await gameHandlersComplete();
+      }
+    }
   } catch (error) {
     console.error("Failed to load schedule", error);
     if (error.response) {
       console.error("Schedule error response:", error.response);
     }
   }
+};
+
+const gameHandlersComplete = async () => {
+  await Promise.all(
+    Object.values(gameHandlers).map(handler => handler.finalGame)
+  );
+  return true;
 };
 
 console.log("Starting NHL stat ingest Coordinator...");
@@ -100,9 +114,7 @@ if (Object.keys(dateConfigurations).length) {
   );
   await coordinateIngest(dateConfigurations)();
   // wait for all game ingest handlers to finish before exiting
-  await Promise.all(
-    Object.values(gameHandlers).map(handler => handler.finalGame)
-  );
+  await gameHandlersComplete();
   console.log(
     `Done with one time ingest for ${JSON.stringify(
       dateConfigurations
