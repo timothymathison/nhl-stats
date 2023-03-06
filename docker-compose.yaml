@@ -6,8 +6,8 @@ services:
     env_file:
       - .env
     depends_on:
-      - db-migrate
-      - postgres
+      db-migrate:
+        condition: service_completed_successfully
   db-migrate:
     build:
       context: .
