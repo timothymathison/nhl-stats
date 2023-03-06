@@ -5,9 +5,7 @@ import {
   compact,
   validateSeason
 } from "./lib/utils.js";
-import {
-  initGameHandler
-} from "./lib/ingest.js";
+import { initGameHandler } from "./lib/ingest.js";
 
 const SCHEDULE_POLL_INTERVAL = 5000;
 
@@ -99,7 +97,7 @@ if (date && (startDate || endDate)) {
   console.error("Only dates in the past are supported for one time ingest");
   process.exit(1);
 }
-// TODO: validate that season is not in the future and dates are not provided at the same time
+// TODO: validate that season is not in the future and dates are not configured at the same time
 
 const dateConfigurations = compact({
   date,
